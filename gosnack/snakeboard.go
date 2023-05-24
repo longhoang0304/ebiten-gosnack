@@ -28,7 +28,7 @@ func NewSnakeBoard() *SnakeBoard {
 		Snake:          []*Point{NewPoint(5, 5)},
 		Fruit:          NewPoint(5, 4),
 		BoxMargin:      1,
-		BoxSize:        40,
+		BoxSize:        20,
 		BoardSize:      400,
 	}
 }
@@ -68,13 +68,14 @@ func (sb *SnakeBoard) Update(totalFrames *int, pressedKey ebiten.Key) error {
 	snakeDic := sb.SnakeDirection
 	nx := snakeHead.X + snakeDic.X
 	ny := snakeHead.Y + snakeDic.Y
+	maxBox := sb.BoardSize / sb.BoxSize
 
 	if nx == fruit.X && ny == fruit.Y {
 		sb.Snake = append(snake, NewPoint(nx, ny))
 		sb.SnakeSpeed -= 5
-		sb.SnakeSpeed = int(math.Max(float64(sb.SnakeSpeed), 15))
-		fx := rand.Intn(9)
-		fy := rand.Intn(9)
+		sb.SnakeSpeed = int(math.Max(float64(sb.SnakeSpeed), 5))
+		fx := rand.Intn(maxBox - 1)
+		fy := rand.Intn(maxBox - 1)
 		sb.Fruit = NewPoint(fx, fy)
 		return nil
 	}
@@ -96,15 +97,16 @@ func (sb *SnakeBoard) DrawBoard(ui *ebiten.Image) *ebiten.DrawImageOptions {
 	marginF := float64(margin)
 	boxSize := sb.BoxSize
 	boardSize := sb.BoardSize
+	maxBox := boardSize / boxSize
 
-	sb.Board = ebiten.NewImage(boardSize, boardSize-margin*9)
-	sb.Board.Fill(color.Black)
+	sb.Board = ebiten.NewImage(boardSize, boardSize-margin*(maxBox-1))
+	sb.Board.Fill(color.RGBA{222, 220, 220, 0xff})
 
-	sb.SnakeBoard = ebiten.NewImage(boardSize, boardSize-margin*9)
+	sb.SnakeBoard = ebiten.NewImage(boardSize, boardSize-margin*(maxBox-1))
 
 	board := sb.Board
 	// draw row
-	for i := 0; i < 10; i++ {
+	for i := 0; i < maxBox; i++ {
 		boxOpt := &ebiten.DrawImageOptions{}
 		boxOpt.GeoM.Translate(marginF, float64(margin-i+boxSize*i))
 		box := ebiten.NewImage(boardSize-margin*2, boxSize-margin*2)
@@ -113,12 +115,12 @@ func (sb *SnakeBoard) DrawBoard(ui *ebiten.Image) *ebiten.DrawImageOptions {
 	}
 
 	// draw col
-	for i := 1; i < 10; i++ {
+	for i := 1; i < maxBox; i++ {
 		x0 := float32(boxSize*i + margin)
 		y0 := float32(margin)
 		x1 := x0
 		y1 := float32(boardSize - margin*10)
-		vector.StrokeLine(board, x0, y0, x1, y1, 1, color.Black, false)
+		vector.StrokeLine(board, x0, y0, x1, y1, 1, color.RGBA{222, 220, 220, 0xff}, false)
 	}
 
 	ui.DrawImage(sb.Board, boardOpt)
@@ -129,7 +131,7 @@ func (sb *SnakeBoard) CreateBox(x, y int) (*ebiten.Image, *ebiten.DrawImageOptio
 	boxOpt := &ebiten.DrawImageOptions{}
 	fx := x
 	fy := y
-	box := ebiten.NewImage(39, 38)
+	box := ebiten.NewImage(sb.BoxSize-1, sb.BoxSize-2)
 	boxOpt.GeoM.Translate(
 		float64(sb.BoxSize*fx)+float64(sb.BoxMargin),
 		float64(sb.BoxSize*fy-fy)+float64(sb.BoxMargin),
@@ -139,7 +141,7 @@ func (sb *SnakeBoard) CreateBox(x, y int) (*ebiten.Image, *ebiten.DrawImageOptio
 
 func (sb *SnakeBoard) DrawFruit(ui *ebiten.Image) {
 	fruit, fruitOpt := sb.CreateBox(sb.Fruit.X, sb.Fruit.Y)
-	fruit.Fill(color.RGBA{0, 0, 0xff, 0xff})
+	fruit.Fill(color.RGBA{90, 175, 204, 0xff})
 	ui.DrawImage(fruit, fruitOpt)
 }
 
@@ -147,27 +149,28 @@ func (sb *SnakeBoard) DrawSnake(ui *ebiten.Image) {
 	last := len(sb.Snake) - 1
 	for _, snk := range sb.Snake[:last] {
 		snake, snakeOpt := sb.CreateBox(snk.X, snk.Y)
-		snake.Fill(color.RGBA{0xff, 0, 0, 0xff})
+		snake.Fill(color.RGBA{250, 147, 147, 0xff})
 		ui.DrawImage(snake, snakeOpt)
 	}
 	snk := sb.Snake[last]
 	snake, snakeOpt := sb.CreateBox(snk.X, snk.Y)
-	snake.Fill(color.RGBA{0x33, 0x33, 0x33, 0xff})
+	snake.Fill(color.RGBA{156, 149, 149, 0xff})
 	ui.DrawImage(snake, snakeOpt)
 }
 
 func (sb *SnakeBoard) Draw(ui *ebiten.Image) {
 	boardOpt := sb.DrawBoard(ui)
 	sb.SnakeBoard.Clear()
-	sb.DrawFruit(sb.SnakeBoard)
 	sb.DrawSnake(sb.SnakeBoard)
+	sb.DrawFruit(sb.SnakeBoard)
 	ui.DrawImage(sb.SnakeBoard, boardOpt)
 }
 
 func (sb *SnakeBoard) IsGameOver() bool {
 	last := len(sb.Snake) - 1
 	snakeHead := sb.Snake[last]
-	if snakeHead.X < 0 || snakeHead.Y < 0 || snakeHead.X >= 9 || snakeHead.Y >= 9 {
+	maxBox := sb.BoardSize / sb.BoxSize
+	if snakeHead.X < 0 || snakeHead.Y < 0 || snakeHead.X >= maxBox || snakeHead.Y >= maxBox {
 		return true
 	}
 
