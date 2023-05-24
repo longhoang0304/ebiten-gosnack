@@ -8,16 +8,18 @@ import (
 )
 
 func main() {
-	file, err := os.Create("profile.pprof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
+	if len(os.Args) > 1 && os.Args[1] == "perf" {
+		file, err := os.Create("profile.pprof")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
 
-	if err := pprof.StartCPUProfile(file); err != nil {
-		log.Fatal(err)
+		if err := pprof.StartCPUProfile(file); err != nil {
+			log.Fatal(err)
+		}
+		defer pprof.StopCPUProfile()
 	}
-	defer pprof.StopCPUProfile()
 
 	gosnack.SetupWindow()
 	gosnack.RunGame()

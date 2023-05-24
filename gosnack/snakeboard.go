@@ -73,7 +73,7 @@ func (sb *SnakeBoard) Update(totalFrames *int, pressedKey ebiten.Key) (bool, err
 
 	if nx == fruit.X && ny == fruit.Y {
 		sb.Snake = append(snake, NewPoint(nx, ny))
-		sb.SnakeSpeed -= 5
+		sb.SnakeSpeed -= 3
 		sb.SnakeSpeed = int(math.Max(float64(sb.SnakeSpeed), 5))
 		fx := rand.Intn(maxBox - 1)
 		fy := rand.Intn(maxBox - 1)
