@@ -48,8 +48,8 @@ func (g *Game) Update() error {
 		pressedKey = pressedKeys[0]
 	}
 
-	err := g.Board.Update(&g.Frames, pressedKey)
-	if g.Board.IsGameOver() {
+	isGameOver, err := g.Board.Update(&g.Frames, pressedKey)
+	if isGameOver {
 		g.State = OVER
 	}
 	return err

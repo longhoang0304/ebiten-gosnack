@@ -54,16 +54,17 @@ func (sb *SnakeBoard) updateSnakeDirection(pressedKey ebiten.Key) {
 	}
 }
 
-func (sb *SnakeBoard) Update(totalFrames *int, pressedKey ebiten.Key) error {
+func (sb *SnakeBoard) Update(totalFrames *int, pressedKey ebiten.Key) (bool, error) {
 	sb.updateSnakeDirection(pressedKey)
 
 	if *totalFrames < sb.SnakeSpeed {
-		return nil
+		return false, nil
 	}
 
 	*totalFrames = 1
 	snake := sb.Snake
-	snakeHead := snake[len(snake)-1]
+	last := len(snake) - 1
+	snakeHead := snake[last]
 	fruit := sb.Fruit
 	snakeDic := sb.SnakeDirection
 	nx := snakeHead.X + snakeDic.X
@@ -77,12 +78,17 @@ func (sb *SnakeBoard) Update(totalFrames *int, pressedKey ebiten.Key) error {
 		fx := rand.Intn(maxBox - 1)
 		fy := rand.Intn(maxBox - 1)
 		sb.Fruit = NewPoint(fx, fy)
-		return nil
+		return false, nil
 	}
 
-	sb.Snake = snake[1:]
-	sb.Snake = append(snake[1:], NewPoint(nx, ny))
-	return nil
+	sb.Snake = append(snake, NewPoint(nx, ny))
+	isGameOver := sb.IsGameOver()
+	if !isGameOver {
+		sb.Snake = sb.Snake[1:]
+	} else {
+		sb.Snake = sb.Snake[:last+1]
+	}
+	return isGameOver, nil
 }
 
 func (sb *SnakeBoard) DrawBoard(ui *ebiten.Image) *ebiten.DrawImageOptions {
